@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polyglot File Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #0f172a; color: #e2e8f0; }
+        .drop-zone { border: 2px dashed #334155; transition: all 0.3s; }
+        .drop-zone:hover { border-color: #38bdf8; background-color: #1e293b; }
+        .file-error { border-color: #ef4444 !important; }
+        .file-success { border-color: #10b981 !important; }
+    </style>
+</head>
+<!-- fahilsum -->
+<body class="p-4 md:p-8">
+    <div class="max-w-3xl mx-auto">
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-sky-400 mb-2">Polyglot File Generator</h1>
+            <p class="text-slate-400 italic">Semua proses dilakukan di browser Anda (100% Client-Side / Aman)</p>
+        </header>
+
+        <div class="bg-slate-800 p-6 rounded-xl shadow-2xl border border-slate-700">
+            <div class="mb-6">
+                <label class="block mb-2 font-semibold text-lg">
+                    1. File Host
+                    <span class="text-sm font-normal text-sky-300">(.jpg, .jpeg, .png, .mp3)</span>
+                </label>
+                <div class="relative">
+                    <input type="file" id="hostFile" accept=".jpg,.jpeg,.png,.mp3" 
+                           class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-sky-500 file:text-white hover:file:bg-sky-600 file:transition-colors">
+                    <div id="hostStatus" class="mt-2 text-sm hidden"></div>
+                </div>
+                <div class="mt-2 text-xs text-slate-400">
+                    File media yang akan menjadi pembungkus utama. File tetap dapat dibuka/diputar normal.
+                </div>
+            </div>
+
+            <div class="mb-8">
+                <label class="block mb-2 font-semibold text-lg">
+                    2. File Guest
+                    <span class="text-sm font-normal text-emerald-300">(.zip)</span>
+                </label>
+                <div class="relative">
+                    <input type="file" id="guestFile" accept=".zip" 
+                           class="block w-full text-sm text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-500 file:text-white hover:file:bg-emerald-600 file:transition-colors">
+                    <div id="guestStatus" class="mt-2 text-sm hidden"></div>
+                </div>
+                <div class="mt-2 text-xs text-slate-400">
+                    File ZIP yang akan disembunyikan. File ZIP bisa berisi berbagai tipe file di dalamnya.
+                </div>
+            </div>
+
+            <div class="mt-8 mb-6">
+                <label class="block mb-2 font-semibold text-lg">3. Output (Opsional) </label>
+                <input type="text" id="outputName" placeholder="nama_polyglot.(ext)"
+                       class="w-full bg-slate-900 border border-slate-700 rounded-lg p-3 text-sky-300 focus:outline-none focus:border-sky-500 transition-colors">
+                <div class="mt-2 text-xs text-slate-400">
+                    Nama file output. Ekstensi akan disesuaikan dengan file host (misal: .jpg, .jpeg, .png, .mp3)
+                </div>
+            </div>
+
+            <button onclick="combineFiles()" id="combineBtn" 
+                    class="w-full mt-6 bg-gradient-to-r from-sky-500 to-sky-600 hover:from-sky-600 hover:to-sky-700 text-white font-bold py-4 rounded-lg transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100">
+                GABUNGKAN FILE
+            </button>
+        </div>
+
+        <div id="status" class="mt-6 text-center hidden">
+            <div class="p-4 bg-emerald-900/30 border border-emerald-500 text-emerald-400 rounded-lg animate-pulse">
+                File Berhasil Digabung! Mengunduh otomatis...
+            </div>
+        </div>
+
+        <div id="error" class="mt-6 text-center hidden">
+            <div class="p-4 bg-red-900/30 border border-red-500 text-red-400 rounded-lg">
+                <span id="errorMessage"></span>
+            </div>
+        </div>
+
+        <div class="mt-10 p-6 bg-slate-900/50 border border-slate-600 rounded-xl">
+            <h3 class="text-xl font-bold text-red-400 mb-4">Catatan Penting:</h3>
+            
+            <div class="space-y-4 text-slate-300">
+                <div class="p-3 bg-slate-800/50 rounded-lg">
+                    <h4 class="font-semibold text-sky-300 mb-1">Client-Side Only:</h4>
+                    <p class="text-sm">
+                        <span class="font-bold">ALAT INI HANYA BERJALAN DI KOMPUTER ANDA!</span><br>
+                        Semua proses penggabungan file dilakukan sepenuhnya di browser Anda.
+                        <span class="font-medium">Tidak ada data yang dikirim ke server mana pun.</span>
+                        File Anda tetap aman dan privat di perangkat Anda sendiri.
+                    </p>
+                </div>
+                
+                <div class="p-3 bg-slate-800/50 rounded-lg">
+                    <h4 class="font-semibold text-sky-300 mb-1">File yang Diizinkan:</h4>
+                    <ul class="list-disc pl-5 space-y-1 text-sm">
+                        <li><span class="font-medium">Host:</span> JPG, JPEG, PNG, MP3</li>
+                        <li><span class="font-medium">Guest:</span> ZIP</li>
+                    </ul>
+                </div>
+                
+                <div class="p-3 bg-slate-800/50 rounded-lg">
+                    <h4 class="font-semibold text-sky-300 mb-1">Tentang File ZIP:</h4>
+                    <p class="text-sm">
+                        File ZIP dapat berisi berbagai jenis file di dalamnya (dokumen, gambar, video, executable, dll).
+                        Setelah digabung, file ZIP akan tersembunyi di bagian akhir file host.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <p class="mt-8 text-center">⚠️ For educational/research purposes only. <span class="font-bold">Use at your own risk.</span> ⚠️</p>
+
+        <footer class="mt-8 text-slate-500 text-sm text-center border-t border-slate-700 pt-4">
+            <p><span class="font-bold">2026 | Fahilsum</span></p>
+        </footer>
+    </div>
+    <!-- fahilsum -->
+    <script>
+        const hostFileInput = document.getElementById('hostFile');
+        const guestFileInput = document.getElementById('guestFile');
+        const outputNameInput = document.getElementById('outputName');
+        const statusDiv = document.getElementById('status');
+        const errorDiv = document.getElementById('error');
+        const errorMessage = document.getElementById('errorMessage');
+        const combineBtn = document.getElementById('combineBtn');
+        const hostStatus = document.getElementById('hostStatus');
+        const guestStatus = document.getElementById('guestStatus');
+
+        hostFileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            
+            const allowedExtensions = ['.jpg', '.jpeg', '.png', '.mp3'];
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            if (!allowedExtensions.includes(fileExtension)) {
+                showError(`File host harus berekstensi ${allowedExtensions.join(', ')}`);
+                hostStatus.textContent = '❌ Format file tidak diizinkan';
+                hostStatus.className = 'mt-2 text-sm text-red-400';
+                hostStatus.classList.remove('hidden');
+                this.classList.add('file-error');
+                combineBtn.disabled = true;
+                return;
+            }
+            
+            if (!outputNameInput.value) {
+                const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.'));
+                outputNameInput.value = nameWithoutExt + '_polyglot' + fileExtension;
+            }
+            
+            hostStatus.textContent = `✅ ${file.name} (${formatBytes(file.size)})`;
+            hostStatus.className = 'mt-2 text-sm text-green-400';
+            hostStatus.classList.remove('hidden');
+            this.classList.remove('file-error');
+            this.classList.add('file-success');
+            validateAll();
+        });
+
+        guestFileInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
+            
+            const allowedExtension = '.zip';
+            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
+            
+            if (fileExtension !== allowedExtension) {
+                showError('File guest harus berekstensi .zip');
+                guestStatus.textContent = '❌ Hanya file ZIP yang diizinkan';
+                guestStatus.className = 'mt-2 text-sm text-red-400';
+                guestStatus.classList.remove('hidden');
+                this.classList.add('file-error');
+                combineBtn.disabled = true;
+                return;
+            }
+            
+            guestStatus.textContent = `✅ ${file.name} (${formatBytes(file.size)})`;
+            guestStatus.className = 'mt-2 text-sm text-green-400';
+            guestStatus.classList.remove('hidden');
+            this.classList.remove('file-error');
+            this.classList.add('file-success');
+            validateAll();
+        });
+
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+
+        function validateAll() {
+            const hostFile = hostFileInput.files[0];
+            const guestFile = guestFileInput.files[0];
+            
+            if (hostFile && guestFile) {
+                const hostExt = '.' + hostFile.name.split('.').pop().toLowerCase();
+                const guestExt = '.' + guestFile.name.split('.').pop().toLowerCase();
+                
+                const allowedHost = ['.jpg', '.jpeg', '.png', '.mp3'];
+                const allowedGuest = ['.zip'];
+                
+                if (allowedHost.includes(hostExt) && allowedGuest.includes(guestExt)) {
+                    combineBtn.disabled = false;
+                    hideError();
+                    return true;
+                }
+            }
+            
+            combineBtn.disabled = true;
+            return false;
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorDiv.classList.remove('hidden');
+            statusDiv.classList.add('hidden');
+        }
+
+        function hideError() {
+            errorDiv.classList.add('hidden');
+        }
+
+        async function combineFiles() {
+            if (!validateAll()) {
+                showError('Harap pilih file yang sesuai dengan format yang diizinkan!');
+                return;
+            }
+
+            const hostFile = hostFileInput.files[0];
+            const guestFile = guestFileInput.files[0];
+            let outputName = outputNameInput.value.trim();
+            
+            const hostExtension = hostFile.name.substring(hostFile.name.lastIndexOf('.'));
+            if (!outputName) {
+                outputName = 'polyglot_result' + hostExtension;
+            } else if (!outputName.includes('.')) {
+                outputName += hostExtension;
+            }
+            
+            try {
+                const hostBuffer = await hostFile.arrayBuffer();
+                const guestBuffer = await guestFile.arrayBuffer();
+                
+                statusDiv.classList.remove('hidden');
+                errorDiv.classList.add('hidden');
+                combineBtn.disabled = true;
+                combineBtn.textContent = '⏳ Memproses...';
+                
+                const combinedArray = new Uint8Array(hostBuffer.byteLength + guestBuffer.byteLength);
+                combinedArray.set(new Uint8Array(hostBuffer), 0);
+                combinedArray.set(new Uint8Array(guestBuffer), hostBuffer.byteLength);
+                
+                const combinedBlob = new Blob([combinedArray], { type: hostFile.type });
+                
+                const url = URL.createObjectURL(combinedBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = outputName;
+                document.body.appendChild(a);
+                a.click();
+                
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                setTimeout(() => {
+                    statusDiv.classList.add('hidden');
+                    combineBtn.disabled = false;
+                    combineBtn.textContent = 'GABUNGKAN FILE';
+                }, 3000);
+                
+            } catch (error) {
+                showError(`Terjadi kesalahan: ${error.message}`);
+                combineBtn.disabled = false;
+                combineBtn.textContent = 'GABUNGKAN FILE';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            combineBtn.disabled = true;
+        });
+    </script>
+</body>
+</html>
